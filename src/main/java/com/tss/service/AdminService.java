@@ -1,8 +1,9 @@
 package com.tss.service;
 
+import com.tss.enums.OrderStatus;
 import com.tss.exceptions.EmptyMenuException;
 import com.tss.entity.*;
-import com.tss.repository.*;
+import com.tss.repository.impl.*;
 
 import java.util.List;
 
@@ -15,18 +16,18 @@ public class AdminService {
     private DPRepo dpRepo;
     private UserRepo userRepo;
     private CustomerRepo customerRepo;
-    private DeliveryManager deliveryManager;
+    private DeliveryService deliveryService;
 
     public AdminService(MenuRepo menuRepo,
                         DPRepo dpRepo,
                         UserRepo userRepo,
-                        DiscountRepo discountRepo, CustomerRepo customerRepo,DeliveryManager deliveryManager) {
+                        DiscountRepo discountRepo, CustomerRepo customerRepo, DeliveryService deliveryService) {
         this.menuRepo = menuRepo;
         this.dpRepo = dpRepo;
         this.userRepo = userRepo;
         this.discountRepo = discountRepo;
         this.customerRepo=customerRepo;
-        this.deliveryManager=deliveryManager;
+        this.deliveryService = deliveryService;
     }
 
     public int addItem(String itemName, double price) {
@@ -89,8 +90,8 @@ public class AdminService {
         userRepo.addUser(partner);
         dpRepo.addPartner((DeliveryPartner) partner);
         System.out.println("\nPartner added successfully with ID: " + partner.getId());
-        if(!deliveryManager.getPendingOrders().isEmpty()){
-            deliveryManager.assignNextPendingOrder((DeliveryPartner) partner);
+        if(!deliveryService.getPendingOrders().isEmpty()){
+            deliveryService.assignNextPendingOrder((DeliveryPartner) partner);
         }
     }
 
@@ -105,10 +106,10 @@ public class AdminService {
         for(Order o : orders){
             o.setDeliveryPartner(null);
             o.setStatus(OrderStatus.PENDING);
-            deliveryManager.getPendingOrders().add(o);
+            deliveryService.getPendingOrders().add(o);
         }
 
-        userRepo.removeUser(partner.getUserName());
+        userRepo.removeUserByUsername(partner.getUserName());
         dpRepo.removePartner(partner);
         System.out.println("Delivery Partner removed successfully !!");
     }

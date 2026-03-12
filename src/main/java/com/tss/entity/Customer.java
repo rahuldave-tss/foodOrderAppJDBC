@@ -1,5 +1,6 @@
 package com.tss.entity;
 
+import com.tss.enums.Role;
 import com.tss.notifications.Observer;
 
 import java.util.ArrayList;
@@ -11,8 +12,14 @@ public class Customer extends User implements Observer {
     private List<Order> orderHistory;
 
     public Customer(String userName,String name, String password, String email, String phoneNumber) {
-        super(userName,name, password, email, phoneNumber,Role.CUSTOMER);
+        super(userName,name, password, email, phoneNumber, Role.CUSTOMER);
         this.cart=new Cart();
+        this.orderHistory=new ArrayList<>();
+    }
+    public Customer(int id,String userName,String name, String password, String email, String phoneNumber,String customerAddress) {
+        super(id,userName,name, password, email, phoneNumber,Role.CUSTOMER);
+        this.cart=new Cart();
+        this.customerAddress=customerAddress;
         this.orderHistory=new ArrayList<>();
     }
     public Customer(int id,String userName,String name, String password, String email, String phoneNumber) {

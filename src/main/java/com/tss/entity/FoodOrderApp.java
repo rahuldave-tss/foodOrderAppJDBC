@@ -1,9 +1,10 @@
 package com.tss.entity;
 
 import com.tss.controller.*;
+import com.tss.enums.Role;
 import com.tss.exceptions.InvalidCredentialsException;
 import com.tss.factory.UserFactory;
-import com.tss.repository.*;
+import com.tss.repository.impl.*;
 import com.tss.service.*;
 
 import java.util.LinkedList;
@@ -19,7 +20,7 @@ public class FoodOrderApp {
     private CustomerRepo customerRepo;
     private DiscountRepo discountRepo;
     private DiscountService discountService;
-    private DeliveryManager deliveryManager;
+    private DeliveryService deliveryService;
 
     public FoodOrderApp() {
         this.dpRepo = new DPRepo();
@@ -28,7 +29,7 @@ public class FoodOrderApp {
         this.discountRepo=new DiscountRepo();
         this.customerRepo=new CustomerRepo();
 
-        this.deliveryManager=new DeliveryManager(dpRepo,new LinkedList<>());
+        this.deliveryService =new DeliveryService(dpRepo,new LinkedList<>());
 
         this.discountService=new DiscountService(discountRepo);
     }
@@ -85,7 +86,7 @@ public class FoodOrderApp {
         System.out.print("Enter UserName: ");
         String userName = scanner.nextLine();
 
-        User user = userRepo.getUserByUserName(userName);
+        User user = userRepo.getUserByUsername(userName);
 
         System.out.print("Enter your password: ");
         String password = scanner.nextLine();
@@ -109,19 +110,19 @@ public class FoodOrderApp {
 
         switch (user.getRole()){
             case ADMIN:{
-                AdminController adminController=new AdminController(new AdminService(menuRepo,dpRepo,userRepo,discountRepo,customerRepo,deliveryManager));
+                AdminController adminController=new AdminController(new AdminService(menuRepo,dpRepo,userRepo,discountRepo,customerRepo, deliveryService));
                 System.out.println("Welcome Admin, "+user.getName()+"!");
                 adminController.start();
                 break;
             }
             case CUSTOMER:{
-                CustomerController customerController=new CustomerController(new CustomerService(dpRepo,discountRepo,user,discountService,deliveryManager),menuRepo,user);
+                CustomerController customerController=new CustomerController(new CustomerService(dpRepo,discountRepo,user,discountService, deliveryService),menuRepo,user);
                 System.out.println("Welcome Customer, "+user.getName()+"!");
                 customerController.start();
                 break;
             }
             case DELIVERY_PARTNER:{
-                DeliveryPartnerController deliveryPartnerController=new DeliveryPartnerController(new DeliveryPartnerService(dpRepo,user,deliveryManager),user);
+                DeliveryPartnerController deliveryPartnerController=new DeliveryPartnerController(new DeliveryPartnerService(dpRepo,user, deliveryService),user);
                 System.out.println("Welcome Delivery Partner, "+user.getName()+"!");
                 deliveryPartnerController.start();
                 break;
@@ -170,8 +171,8 @@ public class FoodOrderApp {
         String customerName = inputName();
         String customerUserName= inputUserName();
         String customerPassword = inputPassword();
-        String customerEmail=validateEmail();
-        String customerPhoneNumber=validatePhoneNumber();
+        String customerEmail= inputEmail();
+        String customerPhoneNumber= inputPhoneNumber();
 
         Customer customer =
                 (Customer) UserFactory.createUser(Role.CUSTOMER,customerUserName,customerName,customerPassword,customerEmail,customerPhoneNumber);
@@ -179,12 +180,30 @@ public class FoodOrderApp {
         System.out.print("Enter your address: ");
         String address= scanner.nextLine();
         customer.setCustomerAddress(address);
-        userRepo.addUser(customer);
-        customerRepo.addCustomer(customer);
+        int customerId=userRepo.addUser(customer);
+        customerRepo.addCustomer(customer,customerId);
 
         System.out.println("\n New Customer Registered Successfully!");
-        System.out.println(" Your Customer ID is: " + customer.getId());
+        System.out.println(" Your Customer ID is: " + customerId);
         System.out.println("------------------------------------------------\n");
+    }
+
+    private String inputPhoneNumber() {
+        String phoneNumber=validatePhoneNumber();
+        while(!userRepo.canAddPhoneNumber(phoneNumber)){
+            System.out.println("Phone Number already registered !!");
+            phoneNumber=validatePhoneNumber();
+        }
+        return phoneNumber;
+    }
+
+    private String inputEmail() {
+        String email=validateEmail();
+        while(!userRepo.canAddEmail(email)){
+            System.out.println("Email already registered !!");
+            email=validateEmail();
+        }
+        return email;
     }
 
     private String inputUserName() {

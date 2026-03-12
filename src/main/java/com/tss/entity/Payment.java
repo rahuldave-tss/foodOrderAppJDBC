@@ -1,5 +1,7 @@
 package com.tss.entity;
 
+import com.tss.enums.PaymentType;
+
 import java.time.LocalDateTime;
 
 public class Payment {

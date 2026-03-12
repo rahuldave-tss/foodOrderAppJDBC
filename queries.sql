@@ -152,3 +152,7 @@ CREATE TABLE payment (
     ON DELETE CASCADE
 );
 
+SELECT * FROM users;
+
+INSERT INTO users(name,user_name,password,phone_number,email,role)
+VALUES ('Rahul','rahul123','123','9429440193','rahul.dave@tssconsultancy.com','ADMIN');

@@ -1,5 +1,6 @@
-package com.tss.entity;
+package com.tss.factory;
 
+import com.tss.enums.PaymentType;
 import com.tss.service.*;
 
 public class PaymentFactory {

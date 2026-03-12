@@ -1,5 +1,6 @@
 package com.tss.entity;
 
+import com.tss.enums.OrderStatus;
 import com.tss.notifications.*;
 
 import java.util.ArrayList;

@@ -2,14 +2,13 @@ package com.tss.controller;
 
 import com.tss.exceptions.*;
 import com.tss.entity.*;
-import com.tss.repository.MenuRepo;
+import com.tss.repository.impl.MenuRepo;
 import com.tss.service.CustomerService;
 import com.tss.utils.Display;
 
 import java.util.List;
 import java.util.Map;
 
-import static com.tss.utils.GlobalConstants.scanner;
 import static com.tss.utils.Validate.validateInt;
 import static com.tss.utils.Validate.validateString;
 

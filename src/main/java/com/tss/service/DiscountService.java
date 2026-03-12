@@ -1,7 +1,7 @@
 package com.tss.service;
 
 import com.tss.entity.DiscountStrategy;
-import com.tss.repository.DiscountRepo;
+import com.tss.repository.impl.DiscountRepo;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ public class DiscountService {
         double maxDiscount=0;
         List<DiscountStrategy> availableDiscounts=discountRepo.getAvailableDiscounts();
         for(DiscountStrategy discount:availableDiscounts){
-            if(cartTotal>=discount.getAmount()){
+            if(cartTotal>=discount.getDiscountAmount()){
                 maxDiscount=Math.max(maxDiscount,discount.applyDiscount(cartTotal));
             }
         }

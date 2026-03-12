@@ -1,8 +1,13 @@
 package com.tss.service;
 
+import com.tss.enums.OrderStatus;
+import com.tss.enums.PaymentType;
 import com.tss.exceptions.*;
 import com.tss.entity.*;
-import com.tss.repository.*;
+import com.tss.factory.PaymentFactory;
+import com.tss.repository.impl.DPRepo;
+import com.tss.repository.impl.DiscountRepo;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,14 +18,14 @@ public class CustomerService {
     private Customer customer;
     private DiscountRepo discountRepo;
     private DiscountService discountService;
-    private DeliveryManager deliveryManager;
+    private DeliveryService deliveryService;
 
-    public CustomerService(DPRepo dpRepo,DiscountRepo discountRepo,User customer,DiscountService discountService,DeliveryManager deliveryManager) {
+    public CustomerService(DPRepo dpRepo, DiscountRepo discountRepo, User customer, DiscountService discountService, DeliveryService deliveryService) {
         this.dpRepo = dpRepo;
         this.discountRepo=discountRepo;
         this.customer=(Customer) customer;
         this.discountService=discountService;
-        this.deliveryManager=deliveryManager;
+        this.deliveryService = deliveryService;
     }
 
     public void placeOrder(){
@@ -60,7 +65,7 @@ public class CustomerService {
             int choice=validateInt();
             switch (choice){
                 case 1:{
-                    iPaymentService=PaymentFactory.getPaymentService(PaymentType.CASH);
+                    iPaymentService= PaymentFactory.getPaymentService(PaymentType.CASH);
                     flag=true;
                     break;
                 }
@@ -89,7 +94,7 @@ public class CustomerService {
 
     public void assignDeliveryPartner(Order order) {
         order.addObserver(customer);
-        deliveryManager.assignOrder(order);
+        deliveryService.assignOrder(order);
     }
 
     private void simulateDelivery(Order order) {

@@ -1,12 +1,13 @@
 package com.tss.entity;
 
+import com.tss.enums.Role;
 import com.tss.notifications.Observer;
 
 public class DeliveryPartner extends User implements Observer {
     private boolean isAvailable;
 
     public DeliveryPartner(String userName,String name, String password, String email, String phoneNumber) {
-        super(userName,name, password, email, phoneNumber,Role.DELIVERY_PARTNER);
+        super(userName,name, password, email, phoneNumber, Role.DELIVERY_PARTNER);
         this.isAvailable=true;
     }
     public DeliveryPartner(int id,String userName,String name, String password, String email, String phoneNumber) {

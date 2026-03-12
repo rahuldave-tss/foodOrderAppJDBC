@@ -1,18 +1,19 @@
 package com.tss.service;
 
 import com.tss.entity.*;
-import com.tss.repository.DPRepo;
+import com.tss.enums.OrderStatus;
+import com.tss.repository.impl.DPRepo;
 
 import java.util.List;
 import java.util.Queue;
 
 import static com.tss.service.DeliveryPartnerService.displayOrderHistoryHeader;
 
-public class DeliveryManager {
+public class DeliveryService {
     private Queue<Order> pendingOrders;
     private DPRepo dpRepo;
 
-    public DeliveryManager(DPRepo dpRepo, Queue<Order> pendingOrders) {
+    public DeliveryService(DPRepo dpRepo, Queue<Order> pendingOrders) {
         this.dpRepo = dpRepo;
         this.pendingOrders = pendingOrders;
     }

@@ -1,6 +1,7 @@
 package com.tss.factory;
 
 import com.tss.entity.*;
+import com.tss.enums.Role;
 
 public class UserFactory {
 

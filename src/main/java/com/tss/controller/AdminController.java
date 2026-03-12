@@ -1,6 +1,7 @@
 package com.tss.controller;
 
 import com.tss.entity.*;
+import com.tss.enums.Role;
 import com.tss.factory.UserFactory;
 import com.tss.service.AdminService;
 import com.tss.exceptions.*;
@@ -248,7 +249,7 @@ public class AdminController {
         discounts.forEach(d ->
                         System.out.printf("ID: %-5d Amount: %-10.2f Percentage: %.2f%%%n",
                                 d.getDiscountId(),
-                                d.getAmount(),
+                                d.getDiscountAmount(),
                                 d.getDiscountPercentage()));
         System.out.println("------------------------------------------------\n");
     }

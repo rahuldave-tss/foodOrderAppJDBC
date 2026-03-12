@@ -1,7 +1,7 @@
 package com.tss.service;
 
 import com.tss.entity.*;
-import com.tss.repository.DPRepo;
+import com.tss.repository.impl.DPRepo;
 
 import java.util.List;
 
@@ -10,19 +10,19 @@ import static com.tss.utils.GlobalConstants.deliveryPartnerCommission;
 public class DeliveryPartnerService {
     private DPRepo dpRepo;
     private DeliveryPartner deliveryPartner;
-    private DeliveryManager deliveryManager;
+    private DeliveryService deliveryService;
 
-    public DeliveryPartnerService(DPRepo dpRepo,User deliveryPartner,DeliveryManager deliveryManager) {
+    public DeliveryPartnerService(DPRepo dpRepo, User deliveryPartner, DeliveryService deliveryService) {
         this.dpRepo=dpRepo;
         this.deliveryPartner=(DeliveryPartner) deliveryPartner;
-        this.deliveryManager=deliveryManager;
+        this.deliveryService = deliveryService;
     }
 
     public void confirmOrder(DeliveryPartner partner) {
-        deliveryManager.completeCurrentOrder(partner);
+        deliveryService.completeCurrentOrder(partner);
     }
     public void viewCurrentOrder(DeliveryPartner partner){
-        deliveryManager.viewCurrentOrder(partner);
+        deliveryService.viewCurrentOrder(partner);
     }
 
     public void showOrderHistory(){

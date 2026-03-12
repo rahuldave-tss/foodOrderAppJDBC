@@ -1,5 +1,7 @@
 package com.tss.entity;
 
+import com.tss.enums.Role;
+
 public abstract class User {
     private int id;
     private String userName;

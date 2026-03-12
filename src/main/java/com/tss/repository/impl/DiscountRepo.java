@@ -1,4 +1,4 @@
-package com.tss.repository;
+package com.tss.repository.impl;
 
 import com.tss.entity.Discount;
 import com.tss.entity.DiscountStrategy;
@@ -27,7 +27,7 @@ public class DiscountRepo {
         for(DiscountStrategy discount:availableDiscounts){
             if(discount instanceof Discount){
                 Discount amountDiscount=(Discount) discount;
-                if(amountDiscount.getAmount()==amount){
+                if(amountDiscount.getDiscountAmount()==amount){
                     return true;
                 }
             }
