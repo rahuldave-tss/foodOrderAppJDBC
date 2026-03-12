@@ -1,79 +1,78 @@
 package com.tss.entity;
 
-import com.tss.enums.userRole;
-
 public abstract class User {
     private int id;
-    private String name;
     private String userName;
+    private String name;
     private String password;
     private String email;
     private String phoneNumber;
-    private userRole role;
+    private Role role;
 
-    public User(String name, String userName, String password, String email, String phoneNumber, userRole role) {
+    public User(int id,String userName, String name, String password, String email, String phoneNumber, Role role) {
+        this.id=id;
+        this.userName=userName;
         this.name = name;
-        this.userName = userName;
         this.password = password;
-        this.email = email;
-        this.phoneNumber = phoneNumber;
-        this.role = role;
+        this.email=email;
+        this.phoneNumber=phoneNumber;
+        this.role=role;
     }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public int getId() {
-        return id;
+    public User(String userName, String name, String password, String email, String phoneNumber, Role role) {
+        this.userName=userName;
+        this.name = name;
+        this.password = password;
+        this.email=email;
+        this.phoneNumber=phoneNumber;
+        this.role=role;
     }
 
     public void setId(int id) {
         this.id = id;
     }
 
+    public String getUserName() {
+        return userName;
+    }
+
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public int getId() {
+        return id;
     }
 
     public String getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public String getEmail() {
         return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public String getPhoneNumber() {
         return phoneNumber;
     }
 
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public userRole getRole() {
+    public Role getRole() {
         return role;
     }
 
-    public void setRole(userRole role) {
-        this.role = role;
+    @Override
+    public String toString() {
+        return String.format(
+                "+----+----------------+----------------+----------------------+--------------+----------+\n" +
+                        "| ID | Name           | Password       | Email                | Phone Number | Role     |\n" +
+                        "+----+----------------+----------------+----------------------+--------------+----------+\n" +
+                        "| %-2d | %-14s | %-14s | %-20s | %-12s | %-8s |\n" +
+                        "+----+----------------+----------------+----------------------+--------------+----------+",
+                id,
+                name,
+                password,
+                email,
+                phoneNumber,
+                role
+        );
     }
-
 }

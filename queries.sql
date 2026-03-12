@@ -72,6 +72,10 @@ CREATE TABLE cart(
 	ON DELETE CASCADE
 );
 
+ALTER TABLE cart
+ADD CONSTRAINT unique_customer_cart
+UNIQUE(customer_id);
+
 CREATE TABLE cart_item (
     id SERIAL PRIMARY KEY,
     cart_id INT NOT NULL,
