@@ -32,9 +32,9 @@ public class UserRepo implements IUserRepo {
             preparedStatement.setString(6,user.getRole().name()); //enum->string
 
             ResultSet resultSet=preparedStatement.executeQuery();
-            System.out.println("if ni baar");
+//            System.out.println("if ni baar");
             if(resultSet.next()){
-                System.out.println("if ni andar");
+//                System.out.println("if ni andar");
                 userId=resultSet.getInt("id");
             }
 

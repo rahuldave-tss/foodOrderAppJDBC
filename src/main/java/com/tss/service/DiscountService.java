@@ -12,14 +12,19 @@ public class DiscountService {
         this.discountRepo = discountRepo;
     }
 
-    public double applyMaxDiscount(double cartTotal){
-        double maxDiscount=0;
-        List<DiscountStrategy> availableDiscounts=discountRepo.getAvailableDiscounts();
-        for(DiscountStrategy discount:availableDiscounts){
-            if(cartTotal>=discount.getDiscountAmount()){
-                maxDiscount=Math.max(maxDiscount,discount.applyDiscount(cartTotal));
+    public String applyMaxDiscount(double cartTotal) {
+        double maxDiscount = 0;
+        int discountId=-1;
+        List<DiscountStrategy> availableDiscounts = discountRepo.getAvailableDiscounts();
+        for (DiscountStrategy discount : availableDiscounts) {
+            if (cartTotal >= discount.getDiscountAmount()) {
+                double discountValue = discount.applyDiscount(cartTotal);
+                if(discountValue > maxDiscount){
+                    discountId=discount.getId();
+                    maxDiscount = discountValue;
+                }
             }
         }
-        return maxDiscount;
+        return maxDiscount+"-"+discountId;
     }
 }

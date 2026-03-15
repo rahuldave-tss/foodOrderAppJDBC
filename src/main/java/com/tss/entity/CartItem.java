@@ -1,8 +1,6 @@
 package com.tss.entity;
 
 public class CartItem {
-
-    private int id;
     private FoodItem foodItem;
     private int quantity;
 
@@ -11,10 +9,6 @@ public class CartItem {
     public CartItem(FoodItem foodItem, int quantity) {
         this.foodItem = foodItem;
         this.quantity = quantity;
-    }
-
-    public int getId() {
-        return id;
     }
 
     public FoodItem getFoodItem() {

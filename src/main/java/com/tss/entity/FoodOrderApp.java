@@ -7,8 +7,6 @@ import com.tss.factory.UserFactory;
 import com.tss.repository.impl.*;
 import com.tss.service.*;
 
-import java.util.LinkedList;
-
 import static com.tss.utils.GlobalConstants.scanner;
 import static com.tss.utils.Validate.*;
 
@@ -19,19 +17,28 @@ public class FoodOrderApp {
     private MenuRepo menuRepo;
     private CustomerRepo customerRepo;
     private DiscountRepo discountRepo;
+    private CartRepo cartRepo;
+    private CartItemRepo cartItemRepo;
+    private OrderRepo orderRepo;
+    private OrderItemRepo orderItemRepo;
+    private PaymentRepo paymentRepo;
     private DiscountService discountService;
     private DeliveryService deliveryService;
 
     public FoodOrderApp() {
-        this.dpRepo = new DPRepo();
         this.userRepo = new UserRepo();
+        this.dpRepo = new DPRepo();
         this.menuRepo = new MenuRepo();
-        this.discountRepo=new DiscountRepo();
-        this.customerRepo=new CustomerRepo();
+        this.customerRepo = new CustomerRepo();
+        this.discountRepo = new DiscountRepo();
+        this.cartRepo = new CartRepo();
+        this.cartItemRepo = new CartItemRepo();
+        this.orderRepo = new OrderRepo();
+        this.orderItemRepo = new OrderItemRepo();
+        this.paymentRepo = new PaymentRepo();
 
-        this.deliveryService =new DeliveryService(dpRepo,new LinkedList<>());
-
-        this.discountService=new DiscountService(discountRepo);
+        this.deliveryService = new DeliveryService(dpRepo, orderRepo, orderItemRepo);
+        this.discountService = new DiscountService(discountRepo);
     }
 
     public void start() {
@@ -57,11 +64,10 @@ public class FoodOrderApp {
                     break;
 
                 case 2:
-                    try{
+                    try {
                         login();
-                    }
-                    catch (InvalidCredentialsException e){
-                        System.out.println("Exception: "+e.getClass().getSimpleName());
+                    } catch (InvalidCredentialsException e) {
+                        System.out.println("Exception: " + e.getClass().getSimpleName());
                         System.out.println(e.getMessage());
                     }
                     break;
@@ -108,22 +114,27 @@ public class FoodOrderApp {
 
     private void redirectUser(User user) {
 
-        switch (user.getRole()){
-            case ADMIN:{
-                AdminController adminController=new AdminController(new AdminService(menuRepo,dpRepo,userRepo,discountRepo,customerRepo, deliveryService));
-                System.out.println("Welcome Admin, "+user.getName()+"!");
+        switch (user.getRole()) {
+            case ADMIN: {
+                AdminController adminController = new AdminController(
+                        new AdminService(menuRepo, dpRepo, userRepo, discountRepo, customerRepo, orderRepo, deliveryService));
+                System.out.println("Welcome Admin, " + user.getName() + "!");
                 adminController.start();
                 break;
             }
-            case CUSTOMER:{
-                CustomerController customerController=new CustomerController(new CustomerService(dpRepo,discountRepo,user,discountService, deliveryService),menuRepo,user);
-                System.out.println("Welcome Customer, "+user.getName()+"!");
+            case CUSTOMER: {
+                CustomerController customerController = new CustomerController(
+                        new CustomerService(dpRepo, discountRepo, user, discountService, deliveryService,
+                                orderRepo, orderItemRepo, paymentRepo, cartRepo, cartItemRepo),
+                        menuRepo);
+                System.out.println("Welcome Customer, " + user.getName() + "!");
                 customerController.start();
                 break;
             }
-            case DELIVERY_PARTNER:{
-                DeliveryPartnerController deliveryPartnerController=new DeliveryPartnerController(new DeliveryPartnerService(dpRepo,user, deliveryService),user);
-                System.out.println("Welcome Delivery Partner, "+user.getName()+"!");
+            case DELIVERY_PARTNER: {
+                DeliveryPartnerController deliveryPartnerController = new DeliveryPartnerController(
+                        new DeliveryPartnerService(dpRepo, user, deliveryService, orderRepo, orderItemRepo), user);
+                System.out.println("Welcome Delivery Partner, " + user.getName() + "!");
                 deliveryPartnerController.start();
                 break;
             }
@@ -169,19 +180,23 @@ public class FoodOrderApp {
         System.out.println("------------------------------------------------");
 
         String customerName = inputName();
-        String customerUserName= inputUserName();
+        String customerUserName = inputUserName();
         String customerPassword = inputPassword();
-        String customerEmail= inputEmail();
-        String customerPhoneNumber= inputPhoneNumber();
+        String customerEmail = inputEmail();
+        String customerPhoneNumber = inputPhoneNumber();
 
         Customer customer =
-                (Customer) UserFactory.createUser(Role.CUSTOMER,customerUserName,customerName,customerPassword,customerEmail,customerPhoneNumber);
+                (Customer) UserFactory.createUser(Role.CUSTOMER, customerUserName, customerName, customerPassword, customerEmail, customerPhoneNumber);
 
         System.out.print("Enter your address: ");
-        String address= scanner.nextLine();
+        String address = scanner.nextLine();
         customer.setCustomerAddress(address);
-        int customerId=userRepo.addUser(customer);
-        customerRepo.addCustomer(customer,customerId);
+        int customerId = userRepo.addUser(customer);
+        customer.setId(customerId);
+        customerRepo.addCustomer(customer, customerId);
+
+        // Create a cart for the new customer
+        cartRepo.createCart(customerId);
 
         System.out.println("\n New Customer Registered Successfully!");
         System.out.println(" Your Customer ID is: " + customerId);
@@ -189,29 +204,29 @@ public class FoodOrderApp {
     }
 
     private String inputPhoneNumber() {
-        String phoneNumber=validatePhoneNumber();
-        while(!userRepo.canAddPhoneNumber(phoneNumber)){
+        String phoneNumber = validatePhoneNumber();
+        while (!userRepo.canAddPhoneNumber(phoneNumber)) {
             System.out.println("Phone Number already registered !!");
-            phoneNumber=validatePhoneNumber();
+            phoneNumber = validatePhoneNumber();
         }
         return phoneNumber;
     }
 
     private String inputEmail() {
-        String email=validateEmail();
-        while(!userRepo.canAddEmail(email)){
+        String email = validateEmail();
+        while (!userRepo.canAddEmail(email)) {
             System.out.println("Email already registered !!");
-            email=validateEmail();
+            email = validateEmail();
         }
         return email;
     }
 
     private String inputUserName() {
         System.out.print("Enter userName: ");
-        String userName= scanner.nextLine();
-        while(!userRepo.canAddUsername(userName)){
+        String userName = scanner.nextLine();
+        while (!userRepo.canAddUsername(userName)) {
             System.out.println("UserName is Taken, Enter another one !!");
-            userName= scanner.nextLine();
+            userName = scanner.nextLine();
         }
         return userName;
     }

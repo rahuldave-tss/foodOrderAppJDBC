@@ -6,4 +6,5 @@ public interface DiscountStrategy {
     void setDiscountPercentage(double discountPercentage);
     double getDiscountPercentage();
     double getDiscountAmount();
+    int getId();
 }

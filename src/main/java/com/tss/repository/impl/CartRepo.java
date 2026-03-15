@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class CartRepo implements ICartRepo {
     private Connection connection;
@@ -27,7 +28,8 @@ public class CartRepo implements ICartRepo {
             ResultSet resultSet=preparedStatement.executeQuery();
             if(resultSet.next()){
                 int cartId=resultSet.getInt("id");
-                return new Cart(cartId,customerId);
+                Cart cart=new Cart(cartId,customerId);
+                return cart;
             }
 
         } catch (SQLException e) {

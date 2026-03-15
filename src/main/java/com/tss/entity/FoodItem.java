@@ -46,18 +46,4 @@ public class FoodItem {
         return String.format("%-10d %-20s %-10.2f",
                 id, name, price);
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof FoodItem)) return false;
-
-        FoodItem that = (FoodItem) o;
-        return this.id == that.id;
-    }
-
-    @Override
-    public int hashCode() {
-        return Integer.hashCode(id);
-    }
 }

@@ -1,53 +1,124 @@
 package com.tss.repository.impl;
 
+import com.tss.config.DBConnection;
 import com.tss.entity.Discount;
 import com.tss.entity.DiscountStrategy;
+import com.tss.repository.IDiscountRepo;
 
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DiscountRepo {
-    private List<DiscountStrategy> availableDiscounts;
+public class DiscountRepo implements IDiscountRepo {
+    private Connection connection;
 
-    public DiscountRepo(){
-        availableDiscounts=new ArrayList<>();
-        //initial discount
-        this.addDiscount(new Discount("Amount Discount",500.0,10));
+    public DiscountRepo() {
+        this.connection = DBConnection.connect();
     }
 
+    @Override
     public List<DiscountStrategy> getAvailableDiscounts() {
-        return availableDiscounts;
-    }
-
-    public void setAvailableDiscounts(List<DiscountStrategy> availableDiscounts) {
-        this.availableDiscounts = availableDiscounts;
-    }
-
-    public boolean findDiscountByAmount(double amount){
-        for(DiscountStrategy discount:availableDiscounts){
-            if(discount instanceof Discount){
-                Discount amountDiscount=(Discount) discount;
-                if(amountDiscount.getDiscountAmount()==amount){
-                    return true;
-                }
+        List<DiscountStrategy> discounts = new ArrayList<>();
+        String sql = "SELECT * FROM discount";
+        try {
+            Statement stmt = connection.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                Discount d = new Discount(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getDouble("discount_amount"),
+                        rs.getDouble("discount_percentage")
+                );
+                discounts.add(d);
             }
+        } catch (SQLException e) {
+            System.out.println("Exception: " + e.getMessage());
+        }
+        return discounts;
+    }
+
+    @Override
+    public int addDiscount(DiscountStrategy discount) {
+        int discountId = -1;
+        String sql = "INSERT INTO discount(name, discount_amount, discount_percentage) VALUES (?, ?, ?) RETURNING id";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, "Amount Discount");
+            ps.setDouble(2, discount.getDiscountAmount());
+            ps.setDouble(3, discount.getDiscountPercentage());
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                discountId = rs.getInt("id");
+            }
+        } catch (SQLException e) {
+            System.out.println("Exception: " + e.getMessage());
+        }
+        return discountId;
+    }
+
+    @Override
+    public boolean removeDiscount(int discountId) {
+        String sql = "DELETE FROM discount WHERE id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, discountId);
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (SQLException e) {
+            System.out.println("Exception: " + e.getMessage());
         }
         return false;
     }
 
-    public void addDiscount(DiscountStrategy discount){
-        availableDiscounts.add(discount);
+    @Override
+    public DiscountStrategy findById(int id) {
+        String sql = "SELECT * FROM discount WHERE id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new Discount(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getDouble("discount_amount"),
+                        rs.getDouble("discount_percentage")
+                );
+            }
+        } catch (SQLException e) {
+            System.out.println("Exception: " + e.getMessage());
+        }
+        return null;
     }
 
-    public void removeDiscount(DiscountStrategy discount){
-        availableDiscounts.remove(discount);
+    @Override
+    public boolean findDiscountByAmount(double amount) {
+        String sql = "SELECT * FROM discount WHERE discount_amount = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setDouble(1, amount);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return true;
+            }
+        } catch (SQLException e) {
+            System.out.println("Exception: " + e.getMessage());
+        }
+        return false;
     }
 
-    public DiscountStrategy findById(int id){
-        return availableDiscounts.stream()
-                .filter(d->d.getDiscountId()==id)
-                .findFirst()
-                .orElse(null);
+    @Override
+    public void updateDiscountPercentage(int id, double percentage) {
+        String sql = "UPDATE discount SET discount_percentage = ? WHERE id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setDouble(1, percentage);
+            ps.setInt(2, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Exception: " + e.getMessage());
+        }
     }
-
 }

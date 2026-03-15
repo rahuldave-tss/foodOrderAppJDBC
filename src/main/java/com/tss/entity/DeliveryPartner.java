@@ -3,6 +3,9 @@ package com.tss.entity;
 import com.tss.enums.Role;
 import com.tss.notifications.Observer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DeliveryPartner extends User implements Observer {
     private boolean isAvailable;
 

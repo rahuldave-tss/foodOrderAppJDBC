@@ -14,17 +14,17 @@ public class Order implements Subject {
     private DeliveryPartner deliveryPartner;
     private OrderStatus status;
     private Customer customer;
-    private Map<FoodItem,OrderItem> items;
+    private List<OrderItem> items;
     private List<Observer> observerList=new ArrayList<>();
 
-    public Order(int id,Map<FoodItem,OrderItem> items,double finalAmount,Customer customer) {
+    public Order(int id,List<OrderItem> items,double finalAmount,Customer customer) {
         this.orderId = id;
         this.status = OrderStatus.CREATED;
         this.items=items;
         this.finalAmount=finalAmount;
         this.customer=customer;
     }
-    public Order(Map<FoodItem,OrderItem> items,double finalAmount,Customer customer) {
+    public Order(List<OrderItem> items,double finalAmount,Customer customer) {
         this.status = OrderStatus.CREATED;
         this.items=items;
         this.finalAmount=finalAmount;
@@ -33,17 +33,17 @@ public class Order implements Subject {
     public Order(Order order) {
         this.orderId = order.getOrderId();
         this.status = order.getStatus();
-        this.items = new HashMap<>(order.getItems());
+        this.items = new ArrayList<>(order.getItems());
         this.finalAmount = order.getFinalAmount();
         this.customer = order.getCustomer();
         this.deliveryPartner = order.getDeliveryPartner();
     }
 
-    public Map<FoodItem, OrderItem> getItems() {
+    public List<OrderItem> getItems() {
         return items;
     }
 
-    public void setItems(Map<FoodItem, OrderItem> items) {
+    public void setItems(List<OrderItem> items) {
         this.items = items;
     }
 
@@ -91,12 +91,9 @@ public class Order implements Subject {
 
         StringBuilder sb = new StringBuilder();
 
-        for (Map.Entry<FoodItem, OrderItem> entry : items.entrySet()) {
+        for (OrderItem orderItem : items) {
 
-            FoodItem food = entry.getKey();
-            OrderItem orderItem = entry.getValue();
-
-            sb.append(food.getName())
+            sb.append(orderItem.getFoodItem().getName())
                     .append(" x")
                     .append(orderItem.getQuantity())
                     .append(", ");

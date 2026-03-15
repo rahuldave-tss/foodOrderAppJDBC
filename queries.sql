@@ -121,6 +121,14 @@ CREATE TABLE orders (
     REFERENCES discount(id)
 );
 
+ALTER TABLE orders DROP CONSTRAINT fk_order_delivery;
+
+ALTER TABLE orders
+ADD CONSTRAINT fk_order_delivery
+FOREIGN KEY (delivery_partner_id)
+REFERENCES delivery_partner(user_id)
+ON DELETE SET NULL;
+
 
 CREATE TABLE order_item (
     id SERIAL PRIMARY KEY,

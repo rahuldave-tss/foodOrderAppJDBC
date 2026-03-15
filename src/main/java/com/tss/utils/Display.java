@@ -11,6 +11,7 @@ public class Display {
     }
 
     public static void displayMenu(List<FoodItem> items){
+        System.out.println("\n************ FOOD MENU ************");
         displayFoodItemHeader();
         items.forEach(System.out::println);
     }

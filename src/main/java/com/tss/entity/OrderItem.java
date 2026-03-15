@@ -29,11 +29,4 @@ public class OrderItem {
         return foodItem.getPrice()*quantity;
     }
 
-    @Override
-    public String toString() {
-        return "OrderItem{" +
-                "foodItem=" + foodItem +
-                ", quantity=" + quantity +
-                '}';
-    }
 }

@@ -13,11 +13,11 @@ public class DeliveryPartnerController {
 
     public DeliveryPartnerController(DeliveryPartnerService deliveryPartnerService, User deliveryPartner) {
         this.deliveryPartnerService = deliveryPartnerService;
-        this.deliveryPartner=(DeliveryPartner) deliveryPartner;
+        this.deliveryPartner = (DeliveryPartner) deliveryPartner;
     }
 
-    public void start(){
-        while(true){
+    public void start() {
+        while (true) {
 
             System.out.println("\n================================================");
             System.out.println("            DELIVERY PARTNER DASHBOARD          ");
@@ -30,42 +30,40 @@ public class DeliveryPartnerController {
             System.out.println("  4. Confirm Current Order");
             System.out.println("  5. Logout");
             System.out.println("------------------------------------------------");
-            System.out.print(" Enter your choice (1-3): ");
+            System.out.print(" Enter your choice (1-5): ");
 
             int choice = validateInt();
             System.out.println();
 
-            switch (choice){
+            switch (choice) {
 
-                case 1:{
+                case 1: {
                     deliveryPartnerService.showOrderHistory();
                     break;
                 }
 
-                case 2:{
+                case 2: {
                     deliveryPartnerService.showTotalEarnings();
                     break;
                 }
-                case 3:{
+                case 3: {
                     deliveryPartnerService.viewCurrentOrder(deliveryPartner);
                     break;
                 }
-                case 4:{
+                case 4: {
                     deliveryPartnerService.confirmOrder(deliveryPartner);
                     break;
                 }
-                case 5:{
+                case 5: {
                     System.out.println("Logging out...");
                     System.out.println("================================================\n");
                     return;
                 }
 
-                default:{
-                    System.out.println("Invalid choice! Please enter a number between 1 and 3.");
+                default: {
+                    System.out.println("Invalid choice! Please enter a number between 1 and 5.");
                 }
             }
         }
     }
-
-
 }

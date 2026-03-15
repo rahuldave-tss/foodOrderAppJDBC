@@ -205,9 +205,9 @@ public class AdminController {
 
                 DiscountStrategy discount =
                         new Discount("Amount Discount", amount, percentage);
-                adminService.addDiscount(discount);
+                int discountId=adminService.addDiscount(discount);
 
-                System.out.println("\nDiscount added successfully !!");
+                System.out.println("\nDiscount added successfully with ID: " + discountId);
                 break;
             }
 

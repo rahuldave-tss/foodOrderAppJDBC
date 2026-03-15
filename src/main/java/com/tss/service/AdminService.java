@@ -16,30 +16,35 @@ public class AdminService {
     private DPRepo dpRepo;
     private UserRepo userRepo;
     private CustomerRepo customerRepo;
+    private OrderRepo orderRepo;
     private DeliveryService deliveryService;
 
     public AdminService(MenuRepo menuRepo,
                         DPRepo dpRepo,
                         UserRepo userRepo,
-                        DiscountRepo discountRepo, CustomerRepo customerRepo, DeliveryService deliveryService) {
+                        DiscountRepo discountRepo,
+                        CustomerRepo customerRepo,
+                        OrderRepo orderRepo,
+                        DeliveryService deliveryService) {
         this.menuRepo = menuRepo;
         this.dpRepo = dpRepo;
         this.userRepo = userRepo;
         this.discountRepo = discountRepo;
-        this.customerRepo=customerRepo;
+        this.customerRepo = customerRepo;
+        this.orderRepo = orderRepo;
         this.deliveryService = deliveryService;
     }
 
     public int addItem(String itemName, double price) {
-        return menuRepo.addItem(new FoodItem(itemName,price));
+        return menuRepo.addItem(new FoodItem(itemName, price));
     }
 
     public boolean removeItem(int itemId) {
         if (menuRepo.getMenu().isEmpty()) {
             throw new EmptyMenuException("No food items available");
         }
-        FoodItem foodItem=menuRepo.getFoodItemById(itemId);
-        if(foodItem==null){
+        FoodItem foodItem = menuRepo.getFoodItemById(itemId);
+        if (foodItem == null) {
             return false;
         }
         menuRepo.removeItem(foodItem);
@@ -56,27 +61,26 @@ public class AdminService {
                 .anyMatch(f -> f.getName().equalsIgnoreCase(itemName));
     }
 
-    public void addDiscount(DiscountStrategy discount) {
-        discountRepo.getAvailableDiscounts().add(discount);
+    public int addDiscount(DiscountStrategy discount) {
+        return discountRepo.addDiscount(discount);
     }
 
     public boolean removeDiscount(int discountId) {
-        return discountRepo.getAvailableDiscounts()
-                .removeIf(d -> d.getDiscountId() == discountId);
+        return discountRepo.removeDiscount(discountId);
     }
 
     public void updateDiscount(int id) {
-        DiscountStrategy discount= discountRepo.findById(id);
-        if(discount==null){
+        DiscountStrategy discount = discountRepo.findById(id);
+        if (discount == null) {
             System.out.println("No such discount available !!");
             return;
         }
-        double newPercentage=validatePercentage();
-        discount.setDiscountPercentage(newPercentage);
+        double newPercentage = validatePercentage();
+        discountRepo.updateDiscountPercentage(id, newPercentage);
         System.out.println("\nDiscount updated successfully !!");
     }
 
-    public boolean findDiscountByAmount(double amount){
+    public boolean findDiscountByAmount(double amount) {
         return discountRepo.findDiscountByAmount(amount);
     }
 
@@ -85,30 +89,35 @@ public class AdminService {
     }
 
     public void addDeliveryPartner(User partner) {
-        userRepo.addUser(partner);
+        int userId = userRepo.addUser(partner);
+        partner.setId(userId);
         dpRepo.addPartner((DeliveryPartner) partner);
         System.out.println("\nPartner added successfully with ID: " + partner.getId());
-        if(!deliveryService.getPendingOrders().isEmpty()){
+
+        // Check if there are pending orders in DB and assign
+        List<Order> pendingOrders = orderRepo.getPendingOrders();
+        if (!pendingOrders.isEmpty()) {
             deliveryService.assignNextPendingOrder((DeliveryPartner) partner);
         }
     }
 
     public void removeDeliveryPartner(int partnerId) {
         DeliveryPartner partner = dpRepo.getDeliveryPartnerById(partnerId);
-        if (partner == null){
+        if (partner == null) {
             System.out.println("No such partner found !!");
             return;
         }
-        //if removed, all his active orders will be set to pending and added back to pending queue
-        List<Order> orders = dpRepo.getDeliveryPartnerOrders(partner);
-        for(Order o : orders){
-            o.setDeliveryPartner(null);
-            o.setStatus(OrderStatus.PENDING);
-            deliveryService.getPendingOrders().add(o);
+        // If removed, all his active (non-delivered) orders will be set to pending
+        List<Order> orders = orderRepo.getOrdersByDeliveryPartnerId(partnerId);
+        for (Order o : orders) {
+            if (o.getStatus() != OrderStatus.DELIVERED) {
+                orderRepo.updateOrderStatus(o.getOrderId(), OrderStatus.PENDING);
+                orderRepo.assignDeliveryPartner(o.getOrderId(), 0); // unassign
+            }
         }
 
-        userRepo.removeUserByUsername(partner.getUserName());
         dpRepo.removePartner(partner);
+        userRepo.removeUserByUsername(partner.getUserName());
         System.out.println("Delivery Partner removed successfully !!");
     }
 
@@ -116,7 +125,7 @@ public class AdminService {
         return dpRepo.getDeliveryPartners();
     }
 
-    public List<Customer> getAllCustomers(){
+    public List<Customer> getAllCustomers() {
         return customerRepo.getCustomerList();
     }
 }
