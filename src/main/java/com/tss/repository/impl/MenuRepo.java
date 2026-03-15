@@ -24,7 +24,7 @@ public class MenuRepo implements IMenuRepo {
             ResultSet resultSet= statement.executeQuery(sql);
 
             while(resultSet.next()){
-                FoodItem f=new FoodItem(resultSet.getString("name"),resultSet.getDouble("price"));
+                FoodItem f=new FoodItem(resultSet.getInt("id"),resultSet.getString("name"),resultSet.getDouble("price"));
                 menu.add(f);
             }
 
@@ -35,20 +35,25 @@ public class MenuRepo implements IMenuRepo {
         return menu;
     }
 
-    public void addItem(FoodItem foodItem){
-        String sql="Insert into food_item values(name,price) values (?,?)";
+    public int addItem(FoodItem foodItem){
+        int itemId=-1;
+        String sql="Insert into food_item (name,price) values (?,?) returning id";
 
         try{
             PreparedStatement preparedStatement= connection.prepareStatement(sql);
             preparedStatement.setString(1, foodItem.getName());
             preparedStatement.setDouble(2,foodItem.getPrice());
 
-            preparedStatement.executeUpdate();
+            ResultSet resultSet=preparedStatement.executeQuery();
+            if(resultSet.next()){
+                itemId=resultSet.getInt("id");
+            }
 
         }
         catch(SQLException e){
             System.out.println("Exception: "+e.getMessage());
         }
+        return itemId;
     }
     public void removeItem(FoodItem foodItem){
         String sql="Delete from food_item where id=?";
@@ -73,7 +78,9 @@ public class MenuRepo implements IMenuRepo {
             preparedStatement.setInt(1, itemId);
 
             ResultSet resultSet=preparedStatement.executeQuery();
-            foodItem=new FoodItem(resultSet.getString("name"),resultSet.getDouble("price"));
+            if(resultSet.next()){
+                foodItem=new FoodItem(resultSet.getInt("id"),resultSet.getString("name"),resultSet.getDouble("price"));
+            }
 
         }
         catch(SQLException e){

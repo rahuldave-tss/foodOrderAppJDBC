@@ -154,5 +154,16 @@ CREATE TABLE payment (
 
 SELECT * FROM users;
 
+--admin
 INSERT INTO users(name,user_name,password,phone_number,email,role)
 VALUES ('Rahul','rahul123','123','9429440193','rahul.dave@tssconsultancy.com','ADMIN');
+--menu items
+INSERT INTO food_item(name,price)
+VALUES ('Burger',100),('Pizza',200),('Pasta',150);
+
+SELECT * FROM users;
+SELECT * FROM users;
+SELECT * FROM customer;
+
+Select c.*,u.* from customer c JOIN users u ON c.user_id=u.id;
+

@@ -8,4 +8,5 @@ public interface IUserRepo {
     User getUserByUsername(String userName);
     boolean canAddPhoneNumber(String phoneNumber);
     boolean canAddEmail(String email);
+    boolean canAddUsername(String userName);
 }

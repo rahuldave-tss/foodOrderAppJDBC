@@ -11,7 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class UserRepo implements IUserRepo {
-    private Connection connection=DBConnection.connect();
+    private Connection connection;
 
     public UserRepo(){
         this.connection=DBConnection.connect();
@@ -70,24 +70,24 @@ public class UserRepo implements IUserRepo {
 
                 if(role.equals(Role.ADMIN)){
                     return new Admin(rs.getInt("id"),
-                            rs.getString("name"),
                             rs.getString("user_name"),
+                            rs.getString("name"),
                             rs.getString("password"),
                             rs.getString("phone_number"),
                             rs.getString("email"));
                 }
                 else if(role.equals(Role.CUSTOMER)){
                     return new Customer(rs.getInt("id"),
-                            rs.getString("name"),
                             rs.getString("user_name"),
+                            rs.getString("name"),
                             rs.getString("password"),
                             rs.getString("phone_number"),
                             rs.getString("email"));
                 }
                 else if(role.equals(Role.DELIVERY_PARTNER)){
                     return new DeliveryPartner(rs.getInt("id"),
-                            rs.getString("name"),
                             rs.getString("user_name"),
+                            rs.getString("name"),
                             rs.getString("password"),
                             rs.getString("phone_number"),
                             rs.getString("email"));
@@ -127,6 +127,25 @@ public class UserRepo implements IUserRepo {
         try{
             PreparedStatement ps= connection.prepareStatement(sql);
             ps.setString(1,email);
+            ResultSet rs=ps.executeQuery();
+
+            if(rs.next()){
+                return false;
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return true;
+    }
+
+    @Override
+    public boolean canAddUsername(String userName) {
+        String sql="Select * from users where user_name=?";
+
+        try{
+            PreparedStatement ps= connection.prepareStatement(sql);
+            ps.setString(1,userName);
             ResultSet rs=ps.executeQuery();
 
             if(rs.next()){

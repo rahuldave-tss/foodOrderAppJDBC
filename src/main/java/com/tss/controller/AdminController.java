@@ -132,9 +132,8 @@ public class AdminController {
 
                 System.out.print("Enter price: ");
                 double price = validateDouble();
-                int id = adminService.addItem(name, price);
-                System.out.println("\nItem added successfully with ID: " + id);
-
+                int itemId = adminService.addItem(name, price);
+                System.out.println("\nItem added successfully with ID: " + itemId);
                 break;
             }
 

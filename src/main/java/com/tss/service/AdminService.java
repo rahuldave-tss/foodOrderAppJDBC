@@ -31,9 +31,7 @@ public class AdminService {
     }
 
     public int addItem(String itemName, double price) {
-        FoodItem foodItem=new FoodItem(itemName,price);
-        menuRepo.addItem(foodItem);
-        return foodItem.getId();
+        return menuRepo.addItem(new FoodItem(itemName,price));
     }
 
     public boolean removeItem(int itemId) {

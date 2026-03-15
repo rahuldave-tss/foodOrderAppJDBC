@@ -97,35 +97,6 @@ public class CustomerService {
         deliveryService.assignOrder(order);
     }
 
-    private void simulateDelivery(Order order) {
-
-        try{
-            Thread.sleep(2000);
-
-            order.setStatus(OrderStatus.PREPARING);
-            order.notifyObservers();
-            System.out.println();
-
-            Thread.sleep(2000);
-
-            order.setStatus(OrderStatus.ON_THE_WAY);
-            order.notifyObservers();
-            System.out.println();
-
-            Thread.sleep(2000);
-
-            order.setStatus(OrderStatus.DELIVERED);
-            order.notifyObservers();
-            System.out.println();
-
-            System.out.println("Order Delivered Successfully !!");
-        }
-        catch(InterruptedException e){
-            System.out.println(e.getClass().getSimpleName());
-            System.out.println("Error in simulating delivery: " + e.getMessage());
-        }
-
-    }
 
     private void printInvoice(Order order) {
 

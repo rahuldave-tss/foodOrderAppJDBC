@@ -208,7 +208,12 @@ public class FoodOrderApp {
 
     private String inputUserName() {
         System.out.print("Enter userName: ");
-        return scanner.nextLine();
+        String userName= scanner.nextLine();
+        while(!userRepo.canAddUsername(userName)){
+            System.out.println("UserName is Taken, Enter another one !!");
+            userName= scanner.nextLine();
+        }
+        return userName;
     }
 
 
