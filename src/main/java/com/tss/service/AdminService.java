@@ -90,11 +90,13 @@ public class AdminService {
 
     public void addDeliveryPartner(User partner) {
         int userId = userRepo.addUser(partner);
+        if(userId==-1){
+            return;
+        }
         partner.setId(userId);
         dpRepo.addPartner((DeliveryPartner) partner);
         System.out.println("\nPartner added successfully with ID: " + partner.getId());
 
-        // Check if there are pending orders in DB and assign
         List<Order> pendingOrders = orderRepo.getPendingOrders();
         if (!pendingOrders.isEmpty()) {
             deliveryService.assignNextPendingOrder((DeliveryPartner) partner);
@@ -107,7 +109,7 @@ public class AdminService {
             System.out.println("No such partner found !!");
             return;
         }
-        // If removed, all his active (non-delivered) orders will be set to pending
+
         List<Order> orders = orderRepo.getOrdersByDeliveryPartnerId(partnerId);
         for (Order o : orders) {
             if (o.getStatus() != OrderStatus.DELIVERED) {

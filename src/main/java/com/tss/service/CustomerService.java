@@ -42,7 +42,6 @@ public class CustomerService {
     }
 
     public void placeOrder() {
-        // Get or create cart from DB
         Cart cart = cartRepo.getCartByUserId(customer.getId());
         if (cart == null) {
             System.out.println("Your cart is empty. Please add items to cart before placing an order.");
@@ -55,35 +54,33 @@ public class CustomerService {
             return;
         }
 
-        // Calculate cart total
         double cartTotal = 0;
         for (CartItem ci : cartItems) {
             cartTotal += ci.getTotal();
         }
 
-        // Apply discount
-        String discountWithId = discountService.applyMaxDiscount(cartTotal);
+        DiscountStrategy discount = discountService.applyMaxDiscount(cartTotal);
 
-        String[] arr = discountWithId.split("-");
-        double discountApplied=Double.parseDouble(arr[0]);
-        int discountId=Integer.parseInt(arr[1]);
-        double finalAmount = cartTotal - discountApplied;
+        int discountId=-1;
+        double discountApplied=0;
+        double finalAmount = cartTotal;
 
-        // Take payment
+        if(discount!=null){
+            discountId=discount.getDiscountId();
+            discountApplied=(cartTotal*discount.getDiscountPercentage())/100;
+            finalAmount-=discountApplied;
+        }
+
         PaymentType paymentType = takePaymentFromCustomer(finalAmount);
 
-        // Create order in DB
-        int orderId = orderRepo.createOrder(customer.getId(), discountId, finalAmount, OrderStatus.CREATED);
+        int orderId = orderRepo.createOrder(customer.getId(), discountId==-1?null:discountId, finalAmount, OrderStatus.CREATED);
 
-        // Save order items in DB
         for (CartItem ci : cartItems) {
             orderItemRepo.addOrderItem(orderId, ci.getFoodItem().getId(), ci.getQuantity(), ci.getTotal());
         }
 
-        // Save payment in DB
         paymentRepo.savePayment(orderId, paymentType, finalAmount);
 
-        // Assign delivery partner
         try {
             deliveryService.assignOrderById(orderId);
         } catch (NoDeliveryPartnerAvailableException e) {
@@ -91,10 +88,8 @@ public class CustomerService {
             System.out.println(e.getMessage());
         }
 
-        // Print invoice
         printInvoice(orderId, cartItems, cartTotal, discountApplied, finalAmount,paymentType);
 
-        // Clear cart in DB
         cartItemRepo.clearCart(cart.getId());
     }
 
@@ -184,7 +179,6 @@ public class CustomerService {
         System.out.println("==============================================================\n");
     }
 
-    // Used by CustomerController to add items to cart in DB
     public void addItemToCart(FoodItem foodItem, int quantity) {
         Cart cart = cartRepo.getCartByUserId(customer.getId());
         if (cart == null) {
@@ -194,7 +188,6 @@ public class CustomerService {
         cartItemRepo.addItem(cartItem, cart.getId());
     }
 
-    // Used by CustomerController to get cart items from DB
     public List<CartItem> getCartItems() {
         Cart cart = cartRepo.getCartByUserId(customer.getId());
         if (cart == null) {
@@ -203,7 +196,6 @@ public class CustomerService {
         return cartItemRepo.getCartItems(cart.getId());
     }
 
-    // Used by CustomerController to remove items from cart in DB
     public void removeItemFromCart(int foodItemId, int qtyToRemove) {
         Cart cart = cartRepo.getCartByUserId(customer.getId());
         if (cart == null) return;
@@ -229,12 +221,10 @@ public class CustomerService {
         System.out.println("Item not found in cart.");
     }
 
-    // Get order history from DB
     public List<Order> getOrderHistory() {
         return orderRepo.getOrdersByCustomerId(customer.getId());
     }
 
-    // Display cart summary from DB
     public void displayCartSummary() {
         List<CartItem> items = getCartItems();
         if (items.isEmpty()) {

@@ -50,6 +50,7 @@ public class OrderRepo implements IOrderRepo {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, orderId);
             ResultSet rs = ps.executeQuery();
+            OrderItemRepo orderItemRepo=new OrderItemRepo();
             if (rs.next()) {
                 Customer customer = new Customer(
                         rs.getInt("customer_id"),
@@ -60,7 +61,9 @@ public class OrderRepo implements IOrderRepo {
                         rs.getString("phone_number")
                 );
 
-                Order order = new Order(rs.getInt("id"), null, rs.getDouble("final_amount"), customer);
+                List<OrderItem> orderItems=orderItemRepo.getOrderItemsByOrderId(orderId);
+
+                Order order = new Order(rs.getInt("id"), orderItems, rs.getDouble("final_amount"), customer,loadDeliveryPartner(rs.getInt("delivery_partner_id")));
                 order.setStatus(OrderStatus.valueOf(rs.getString("status")));
                 return order;
             }
@@ -79,15 +82,15 @@ public class OrderRepo implements IOrderRepo {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, customerId);
             ResultSet rs = ps.executeQuery();
+            OrderItemRepo orderItemRepo=new OrderItemRepo();
             while (rs.next()) {
-                // Create a minimal customer for the order
+
                 Customer customer = new Customer(rs.getInt("customer_id"), "", "", "", "", "");
 
-                List<OrderItem> items = new OrderItemRepo().getOrderItemsByOrderId(rs.getInt("id"));
-                Order order = new Order(rs.getInt("id"), items, rs.getDouble("final_amount"), customer);
+                List<OrderItem> items = orderItemRepo.getOrderItemsByOrderId(rs.getInt("id"));
+                Order order = new Order(rs.getInt("id"), items, rs.getDouble("final_amount"), customer,loadDeliveryPartner(rs.getInt("delivery_partner_id")));
                 order.setStatus(OrderStatus.valueOf(rs.getString("status")));
 
-                // Load delivery partner if assigned
                 int dpId = rs.getInt("delivery_partner_id");
                 if (!rs.wasNull()) {
                     order.setDeliveryPartner(loadDeliveryPartner(dpId));
@@ -112,6 +115,7 @@ public class OrderRepo implements IOrderRepo {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, deliveryPartnerId);
             ResultSet rs = ps.executeQuery();
+            OrderItemRepo orderItemRepo=new OrderItemRepo();
             while (rs.next()) {
                 Customer customer = new Customer(
                         rs.getInt("customer_id"),
@@ -122,7 +126,8 @@ public class OrderRepo implements IOrderRepo {
                         rs.getString("phone_number")
                 );
 
-                Order order = new Order(rs.getInt("id"), null, rs.getDouble("final_amount"), customer);
+                List<OrderItem> orderItems=orderItemRepo.getOrderItemsByOrderId(rs.getInt("id"));
+                Order order = new Order(rs.getInt("id"), orderItems, rs.getDouble("final_amount"), customer,loadDeliveryPartner(rs.getInt("delivery_partner_id")));
                 order.setStatus(OrderStatus.valueOf(rs.getString("status")));
                 orders.add(order);
             }
@@ -182,7 +187,7 @@ public class OrderRepo implements IOrderRepo {
 
                 List<OrderItem> items = orderItemRepo.getOrderItemsByOrderId(rs.getInt("id"));
 
-                Order order = new Order(rs.getInt("id"), items, rs.getDouble("final_amount"), customer);
+                Order order = new Order(rs.getInt("id"), items, rs.getDouble("final_amount"), customer,loadDeliveryPartner(rs.getInt("delivery_partner_id")));
                 order.setStatus(OrderStatus.valueOf(rs.getString("status")));
                 orders.add(order);
             }
@@ -192,7 +197,6 @@ public class OrderRepo implements IOrderRepo {
         return orders;
     }
 
-    // Helper to load a DeliveryPartner by ID
     private DeliveryPartner loadDeliveryPartner(int dpId) {
         String sql = "SELECT u.id, u.user_name, u.name, u.password, u.email, u.phone_number, dp.is_available " +
                      "FROM delivery_partner dp JOIN users u ON dp.user_id = u.id WHERE dp.user_id = ?";

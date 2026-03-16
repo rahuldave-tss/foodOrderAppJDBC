@@ -17,12 +17,13 @@ public class Order implements Subject {
     private List<OrderItem> items;
     private List<Observer> observerList=new ArrayList<>();
 
-    public Order(int id,List<OrderItem> items,double finalAmount,Customer customer) {
+    public Order(int id,List<OrderItem> items,double finalAmount,Customer customer,DeliveryPartner deliveryPartner) {
         this.orderId = id;
         this.status = OrderStatus.CREATED;
         this.items=items;
         this.finalAmount=finalAmount;
         this.customer=customer;
+        this.deliveryPartner=deliveryPartner;
     }
     public Order(List<OrderItem> items,double finalAmount,Customer customer) {
         this.status = OrderStatus.CREATED;

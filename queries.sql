@@ -121,6 +121,7 @@ CREATE TABLE orders (
     REFERENCES discount(id)
 );
 
+--to delete delivery partner and set null into past orders
 ALTER TABLE orders DROP CONSTRAINT fk_order_delivery;
 
 ALTER TABLE orders

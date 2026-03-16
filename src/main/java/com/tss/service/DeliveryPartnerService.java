@@ -44,7 +44,6 @@ public class DeliveryPartnerService {
             return;
         }
 
-        // Load order items for each order
         for (Order o : orders) {
             List<OrderItem> items = orderItemRepo.getOrderItemsByOrderId(o.getOrderId());
             o.setItems(items);

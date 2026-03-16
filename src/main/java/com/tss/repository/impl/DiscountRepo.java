@@ -121,4 +121,27 @@ public class DiscountRepo implements IDiscountRepo {
             System.out.println("Exception: " + e.getMessage());
         }
     }
+
+    @Override
+    public Discount getMaxPossibleDiscount(double total) {
+        String sql="SELECT * FROM discount WHERE discount_amount<=? ORDER BY discount_percentage DESC LIMIT 1";
+        Discount discount=null;
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setDouble(1, total);
+            ResultSet resultSet=ps.executeQuery();
+
+            if(resultSet.next()){
+                discount=new Discount(
+                        resultSet.getInt("id"),
+                        resultSet.getString("name"),
+                        resultSet.getDouble("discount_amount"),
+                        resultSet.getDouble("discount_percentage")
+                );
+            }
+        } catch (SQLException e) {
+            System.out.println("Exception: " + e.getMessage());
+        }
+        return discount;
+    }
 }

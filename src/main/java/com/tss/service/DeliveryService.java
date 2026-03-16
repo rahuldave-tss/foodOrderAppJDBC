@@ -29,7 +29,6 @@ public class DeliveryService {
             System.out.println("No current order for: " + partner.getName());
             return;
         }
-        // Find the latest non-delivered order
         Order currentOrder = null;
         for (int i = orders.size() - 1; i >= 0; i--) {
             if (orders.get(i).getStatus() != OrderStatus.DELIVERED) {
@@ -42,7 +41,6 @@ public class DeliveryService {
             return;
         }
 
-        // Load order items
         loadOrderItems(currentOrder);
 
         System.out.println("Your current order: ");
@@ -55,9 +53,7 @@ public class DeliveryService {
 
         for (DeliveryPartner partner : partners) {
             if (partner.isAvailable()) {
-                // Mark as unavailable in DB
                 dpRepo.updateAvailability(partner.getId(), false);
-                // Assign in DB
                 orderRepo.assignDeliveryPartner(orderId, partner.getId());
 
                 System.out.println("Order " + orderId + " assigned to " + partner.getName());
@@ -65,7 +61,6 @@ public class DeliveryService {
             }
         }
 
-        // No partner available, set to PENDING
         orderRepo.updateOrderStatus(orderId, OrderStatus.PENDING);
         System.out.println("No delivery partner available. Order added to pending queue.");
     }
@@ -77,7 +72,6 @@ public class DeliveryService {
             return;
         }
 
-        // Find latest non-delivered order
         Order currentOrder = null;
         for (int i = orders.size() - 1; i >= 0; i--) {
             if (orders.get(i).getStatus() != OrderStatus.DELIVERED) {
@@ -91,13 +85,10 @@ public class DeliveryService {
             return;
         }
 
-        // Mark order as delivered in DB
         orderRepo.updateOrderStatus(currentOrder.getOrderId(), OrderStatus.DELIVERED);
-        // Mark partner as available in DB
         dpRepo.updateAvailability(partner.getId(), true);
         System.out.println("Order " + currentOrder.getOrderId() + " delivered successfully.");
 
-        // Try to assign next pending order
         assignNextPendingOrder(partner);
     }
 
@@ -105,16 +96,13 @@ public class DeliveryService {
         List<Order> pendingOrders = orderRepo.getPendingOrders();
         if (!pendingOrders.isEmpty()) {
             Order nextOrder = pendingOrders.get(0);
-            // Mark partner as unavailable
             dpRepo.updateAvailability(partner.getId(), false);
-            // Assign the order
             orderRepo.assignDeliveryPartner(nextOrder.getOrderId(), partner.getId());
 
             System.out.println("Pending order " + nextOrder.getOrderId() + " assigned to " + partner.getName());
         }
     }
 
-    // Helper to load order items into the Order's items list
     private void loadOrderItems(Order order) {
         List<OrderItem> items = orderItemRepo.getOrderItemsByOrderId(order.getOrderId());
         order.setItems(items);

@@ -27,7 +27,7 @@ public class CartItemRepo implements ICartItemRepository {
             ResultSet rs = checkPs.executeQuery();
 
             if (rs.next()) {
-                // Item already in cart, update quantity
+                // Item already in cart
                 int existingQty = rs.getInt("quantity");
                 int cartItemId = rs.getInt("id");
                 String updateSql = "UPDATE cart_item SET quantity = ? WHERE id = ?";
@@ -36,7 +36,7 @@ public class CartItemRepo implements ICartItemRepository {
                 updatePs.setInt(2, cartItemId);
                 updatePs.executeUpdate();
             } else {
-                // New item, insert
+                // New
                 String insertSql = "INSERT INTO cart_item(cart_id, food_item_id, quantity) VALUES (?, ?, ?)";
                 PreparedStatement insertPs = connection.prepareStatement(insertSql);
                 insertPs.setInt(1, cartId);
