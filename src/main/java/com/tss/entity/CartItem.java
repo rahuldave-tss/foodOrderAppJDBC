@@ -11,6 +11,10 @@ public class CartItem {
         this.quantity = quantity;
     }
 
+    public void setFoodItem(FoodItem foodItem) {
+        this.foodItem = foodItem;
+    }
+
     public FoodItem getFoodItem() {
         return foodItem;
     }
