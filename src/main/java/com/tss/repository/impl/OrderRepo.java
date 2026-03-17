@@ -83,6 +83,7 @@ public class OrderRepo implements IOrderRepo {
             ps.setInt(1, customerId);
             ResultSet rs = ps.executeQuery();
             OrderItemRepo orderItemRepo=new OrderItemRepo();
+
             while (rs.next()) {
 
                 Customer customer = new Customer(rs.getInt("customer_id"), "", "", "", "", "");
@@ -90,7 +91,6 @@ public class OrderRepo implements IOrderRepo {
                 List<OrderItem> items = orderItemRepo.getOrderItemsByOrderId(rs.getInt("id"));
                 Order order = new Order(rs.getInt("id"), items, rs.getDouble("final_amount"), customer,loadDeliveryPartner(rs.getInt("delivery_partner_id")));
                 order.setStatus(OrderStatus.valueOf(rs.getString("status")));
-
                 int dpId = rs.getInt("delivery_partner_id");
                 if (!rs.wasNull()) {
                     order.setDeliveryPartner(loadDeliveryPartner(dpId));
@@ -116,6 +116,7 @@ public class OrderRepo implements IOrderRepo {
             ps.setInt(1, deliveryPartnerId);
             ResultSet rs = ps.executeQuery();
             OrderItemRepo orderItemRepo=new OrderItemRepo();
+
             while (rs.next()) {
                 Customer customer = new Customer(
                         rs.getInt("customer_id"),
@@ -127,7 +128,7 @@ public class OrderRepo implements IOrderRepo {
                 );
 
                 List<OrderItem> orderItems=orderItemRepo.getOrderItemsByOrderId(rs.getInt("id"));
-                Order order = new Order(rs.getInt("id"), orderItems, rs.getDouble("final_amount"), customer,loadDeliveryPartner(rs.getInt("delivery_partner_id")));
+                Order order = new Order(rs.getInt("id"), orderItems, rs.getDouble("final_amount"), customer,loadDeliveryPartner(deliveryPartnerId));
                 order.setStatus(OrderStatus.valueOf(rs.getString("status")));
                 orders.add(order);
             }
@@ -167,7 +168,7 @@ public class OrderRepo implements IOrderRepo {
     @Override
     public List<Order> getPendingOrders() {
         List<Order> orders = new ArrayList<>();
-        String sql = "SELECT o.id, o.customer_id, o.final_amount, o.status, " +
+        String sql = "SELECT o.id, o.customer_id,o.delivery_partner_id, o.final_amount, o.status, " +
                      "u.user_name, u.name, u.password, u.email, u.phone_number " +
                      "FROM orders o JOIN users u ON o.customer_id = u.id " +
                      "WHERE o.status = 'PENDING' ORDER BY o.created_at";
@@ -175,6 +176,7 @@ public class OrderRepo implements IOrderRepo {
             Statement stmt = connection.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
             OrderItemRepo orderItemRepo=new OrderItemRepo();
+
             while (rs.next()) {
                 Customer customer = new Customer(
                         rs.getInt("customer_id"),
@@ -185,7 +187,7 @@ public class OrderRepo implements IOrderRepo {
                         rs.getString("phone_number")
                 );
 
-                List<OrderItem> items = orderItemRepo.getOrderItemsByOrderId(rs.getInt("id"));
+                List<OrderItem> items=orderItemRepo.getOrderItemsByOrderId(rs.getInt("id"));
 
                 Order order = new Order(rs.getInt("id"), items, rs.getDouble("final_amount"), customer,loadDeliveryPartner(rs.getInt("delivery_partner_id")));
                 order.setStatus(OrderStatus.valueOf(rs.getString("status")));

@@ -1,6 +1,9 @@
-package com.tss.entity;
+package com.tss.app;
 
 import com.tss.controller.*;
+import com.tss.entity.Customer;
+import com.tss.entity.DeliveryPartner;
+import com.tss.entity.User;
 import com.tss.enums.Role;
 import com.tss.exceptions.InvalidCredentialsException;
 import com.tss.factory.UserFactory;
@@ -123,8 +126,9 @@ public class FoodOrderApp {
                 break;
             }
             case CUSTOMER: {
+                Customer customer=customerRepo.getCustomerById(user.getId());
                 CustomerController customerController = new CustomerController(
-                        new CustomerService(dpRepo, discountRepo, user, discountService, deliveryService,
+                        new CustomerService(customer, discountService, deliveryService,
                                 orderRepo, orderItemRepo, paymentRepo, cartRepo, cartItemRepo),
                         menuRepo);
                 System.out.println("Welcome Customer, " + user.getName() + "!");
@@ -132,8 +136,9 @@ public class FoodOrderApp {
                 break;
             }
             case DELIVERY_PARTNER: {
+                DeliveryPartner deliveryPartner=dpRepo.getDeliveryPartnerById(user.getId());
                 DeliveryPartnerController deliveryPartnerController = new DeliveryPartnerController(
-                        new DeliveryPartnerService(dpRepo, user, deliveryService, orderRepo, orderItemRepo), user);
+                        new DeliveryPartnerService(dpRepo, deliveryPartner, deliveryService, orderRepo, orderItemRepo), user);
                 System.out.println("Welcome Delivery Partner, " + user.getName() + "!");
                 deliveryPartnerController.start();
                 break;

@@ -5,6 +5,7 @@ import com.tss.exceptions.EmptyMenuException;
 import com.tss.entity.*;
 import com.tss.repository.impl.*;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import static com.tss.utils.Validate.validatePercentage;
@@ -117,10 +118,14 @@ public class AdminService {
                 orderRepo.assignDeliveryPartner(o.getOrderId(), 0); // unassign
             }
         }
+        try{
+            dpRepo.removePartner(partner);
+            userRepo.removeUserByUsername(partner.getUserName());
+            System.out.println("Delivery Partner removed successfully !!");
+        } catch (SQLException e) {
+            System.out.println("Exception: "+e.getMessage());
+        }
 
-        dpRepo.removePartner(partner);
-        userRepo.removeUserByUsername(partner.getUserName());
-        System.out.println("Delivery Partner removed successfully !!");
     }
 
     public List<DeliveryPartner> getAllDeliveryPartners() {

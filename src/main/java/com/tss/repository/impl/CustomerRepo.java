@@ -72,4 +72,22 @@ public class CustomerRepo implements ICustomerRepo {
 
         return customers;
     }
+
+    @Override
+    public Customer getCustomerById(int customerId) {
+        String sql="Select * from customer c join users u on c.user_id=u.id where c.user_id=?";
+        try{
+            PreparedStatement preparedStatement=connection.prepareStatement(sql);
+            preparedStatement.setInt(1,customerId);
+
+            ResultSet rs=preparedStatement.executeQuery();
+            if(rs.next()){
+                return new Customer(rs.getInt("id"),rs.getString("user_name"),rs.getString("name"),rs.getString("password"), rs.getString("email"), rs.getString("phone_number"), rs.getString("address") );
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Exception: "+e.getMessage());
+        }
+        return null;
+    }
 }

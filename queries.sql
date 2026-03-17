@@ -29,7 +29,7 @@ CREATE TABLE users (
 CREATE TABLE customer (
     user_id INT PRIMARY KEY,
     address TEXT,
-    
+
     CONSTRAINT fk_customer_user
     FOREIGN KEY (user_id)
     REFERENCES users(id)
@@ -107,6 +107,8 @@ CREATE TABLE orders (
     final_amount NUMERIC(10,2),
     status order_status,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	--here instead of discount id , we can store discount amount,percentage, because later if discount is
+	--updated, then the order history remains consistent
 
     CONSTRAINT fk_order_customer
     FOREIGN KEY (customer_id)
@@ -120,15 +122,6 @@ CREATE TABLE orders (
     FOREIGN KEY (discount_id)
     REFERENCES discount(id)
 );
-
---to delete delivery partner and set null into past orders
-ALTER TABLE orders DROP CONSTRAINT fk_order_delivery;
-
-ALTER TABLE orders
-ADD CONSTRAINT fk_order_delivery
-FOREIGN KEY (delivery_partner_id)
-REFERENCES delivery_partner(user_id)
-ON DELETE SET NULL;
 
 
 CREATE TABLE order_item (
@@ -161,7 +154,6 @@ CREATE TABLE payment (
     ON DELETE CASCADE
 );
 
-SELECT * FROM users;
 
 --admin
 INSERT INTO users(name,user_name,password,phone_number,email,role)
@@ -169,10 +161,22 @@ VALUES ('Rahul','rahul123','123','9429440193','rahul.dave@tssconsultancy.com','A
 --menu items
 INSERT INTO food_item(name,price)
 VALUES ('Burger',100),('Pizza',200),('Pasta',150);
+--discount
+INSERT INTO discount(name,discount_amount,discount_percentage)
+VALUES ('Amount Discount',500,10);
 
-SELECT * FROM users;
+
 SELECT * FROM users;
 SELECT * FROM customer;
+SELECT * FROM delivery_partner;
+SELECT * FROM orders;
+SELECT * FROM payment;
+SELECT * FROM discount;
+SELECT * FROM cart_item;
+SELECT * FROM order_item;
 
-Select c.*,u.* from customer c JOIN users u ON c.user_id=u.id;
+
+-- DROP SCHEMA public CASCADE;
+-- CREATE SCHEMA public;
+
 

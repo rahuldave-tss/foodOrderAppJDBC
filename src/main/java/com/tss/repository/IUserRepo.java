@@ -2,6 +2,8 @@ package com.tss.repository;
 
 import com.tss.entity.User;
 
+import java.sql.SQLException;
+
 public interface IUserRepo {
     int addUser(User user);
     void removeUserByUsername(String userName);

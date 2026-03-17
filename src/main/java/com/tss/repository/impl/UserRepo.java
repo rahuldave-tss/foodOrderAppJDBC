@@ -53,7 +53,7 @@ public class UserRepo implements IUserRepo {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            System.out.println("Exception: "+e.getMessage());
         }
     }
 

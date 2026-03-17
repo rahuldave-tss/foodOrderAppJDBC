@@ -4,6 +4,7 @@ import com.tss.entity.*;
 import com.tss.repository.impl.MenuRepo;
 import com.tss.service.CustomerService;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import static com.tss.utils.Display.displayMenu;
@@ -97,7 +98,11 @@ public class CustomerController {
     }
 
     private void placeOrder() {
-        customerService.placeOrder();
+        try{
+            customerService.placeOrder();
+        } catch (SQLException e) {
+            System.out.println("Exception: "+e.getMessage());
+        }
     }
 
     private void viewCartSummary() {

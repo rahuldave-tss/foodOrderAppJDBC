@@ -29,14 +29,14 @@ public class DPRepo implements IDPRepo {
     }
 
     @Override
-    public void removePartner(DeliveryPartner partner) {
+    public void removePartner(DeliveryPartner partner) throws SQLException {
         String sql = "DELETE FROM delivery_partner WHERE user_id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, partner.getId());
             ps.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("Exception: " + e.getMessage());
+            throw new SQLException();
         }
     }
 

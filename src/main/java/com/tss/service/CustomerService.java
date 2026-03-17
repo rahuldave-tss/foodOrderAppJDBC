@@ -1,22 +1,22 @@
 package com.tss.service;
 
+import com.tss.config.DBConnection;
 import com.tss.enums.OrderStatus;
 import com.tss.enums.PaymentType;
 import com.tss.exceptions.*;
 import com.tss.entity.*;
 import com.tss.factory.PaymentFactory;
 import com.tss.repository.impl.*;
+import com.tss.utils.Display;
 
-import java.util.HashMap;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
-import java.util.Map;
 
 import static com.tss.utils.Validate.validateInt;
 
 public class CustomerService {
-    private DPRepo dpRepo;
     private Customer customer;
-    private DiscountRepo discountRepo;
     private DiscountService discountService;
     private DeliveryService deliveryService;
     private OrderRepo orderRepo;
@@ -24,13 +24,12 @@ public class CustomerService {
     private PaymentRepo paymentRepo;
     private CartRepo cartRepo;
     private CartItemRepo cartItemRepo;
+    private Connection connection;
 
-    public CustomerService(DPRepo dpRepo, DiscountRepo discountRepo, User customer,
+    public CustomerService(User customer,
                            DiscountService discountService, DeliveryService deliveryService,
                            OrderRepo orderRepo, OrderItemRepo orderItemRepo, PaymentRepo paymentRepo,
                            CartRepo cartRepo, CartItemRepo cartItemRepo) {
-        this.dpRepo = dpRepo;
-        this.discountRepo = discountRepo;
         this.customer = (Customer) customer;
         this.discountService = discountService;
         this.deliveryService = deliveryService;
@@ -39,58 +38,73 @@ public class CustomerService {
         this.paymentRepo = paymentRepo;
         this.cartRepo = cartRepo;
         this.cartItemRepo = cartItemRepo;
+        this.connection=DBConnection.connect();
     }
 
-    public void placeOrder() {
-        Cart cart = cartRepo.getCartByUserId(customer.getId());
-        if (cart == null) {
-            System.out.println("Your cart is empty. Please add items to cart before placing an order.");
-            return;
+    public void placeOrder() throws SQLException {
+        try{
+            connection.setAutoCommit(false);
+
+            Cart cart = cartRepo.getCartByUserId(customer.getId());
+            if (cart == null) {
+                System.out.println("Your cart is empty. Please add items to cart before placing an order.");
+                return;
+            }
+
+            List<CartItem> cartItems = cartItemRepo.getCartItems(cart.getId());
+            if (cartItems.isEmpty()) {
+                System.out.println("Your cart is empty. Please add items to cart before placing an order.");
+                return;
+            }
+
+            double cartTotal = 0;
+            for (CartItem ci : cartItems) {
+                cartTotal += ci.getTotal();
+            }
+
+            DiscountStrategy discount = discountService.applyMaxDiscount(cartTotal);
+
+            int discountId=-1;
+            double discountApplied=0;
+            double finalAmount = cartTotal;
+
+            if(discount!=null){
+                discountId=discount.getDiscountId();
+                discountApplied=(cartTotal*discount.getDiscountPercentage())/100;
+                finalAmount-=discountApplied;
+            }
+
+            PaymentType paymentType = takePaymentFromCustomer(finalAmount);
+
+            int orderId = orderRepo.createOrder(customer.getId(), discountId==-1?null:discountId, finalAmount, OrderStatus.CREATED);
+
+            for (CartItem ci : cartItems) {
+                orderItemRepo.addOrderItem(orderId, ci.getFoodItem().getId(), ci.getQuantity(), ci.getTotal());
+            }
+
+            paymentRepo.savePayment(orderId, paymentType, finalAmount);
+
+            try {
+                deliveryService.assignOrderById(orderId);
+            } catch (NoDeliveryPartnerAvailableException e) {
+                System.out.println("Exception: " + e.getClass().getSimpleName());
+                System.out.println(e.getMessage());
+            }
+
+            Display.printInvoice(orderRepo,customer,orderId, cartItems, cartTotal, discountApplied, finalAmount,paymentType);
+
+            cartItemRepo.clearCart(cart.getId());
+
+            connection.commit();
+        }
+        catch (Exception e){
+            connection.rollback();
+            System.out.println("Error occurred in transaction ");
+        }
+        finally {
+            connection.setAutoCommit(true);
         }
 
-        List<CartItem> cartItems = cartItemRepo.getCartItems(cart.getId());
-        if (cartItems.isEmpty()) {
-            System.out.println("Your cart is empty. Please add items to cart before placing an order.");
-            return;
-        }
-
-        double cartTotal = 0;
-        for (CartItem ci : cartItems) {
-            cartTotal += ci.getTotal();
-        }
-
-        DiscountStrategy discount = discountService.applyMaxDiscount(cartTotal);
-
-        int discountId=-1;
-        double discountApplied=0;
-        double finalAmount = cartTotal;
-
-        if(discount!=null){
-            discountId=discount.getDiscountId();
-            discountApplied=(cartTotal*discount.getDiscountPercentage())/100;
-            finalAmount-=discountApplied;
-        }
-
-        PaymentType paymentType = takePaymentFromCustomer(finalAmount);
-
-        int orderId = orderRepo.createOrder(customer.getId(), discountId==-1?null:discountId, finalAmount, OrderStatus.CREATED);
-
-        for (CartItem ci : cartItems) {
-            orderItemRepo.addOrderItem(orderId, ci.getFoodItem().getId(), ci.getQuantity(), ci.getTotal());
-        }
-
-        paymentRepo.savePayment(orderId, paymentType, finalAmount);
-
-        try {
-            deliveryService.assignOrderById(orderId);
-        } catch (NoDeliveryPartnerAvailableException e) {
-            System.out.println("Exception: " + e.getClass().getSimpleName());
-            System.out.println(e.getMessage());
-        }
-
-        printInvoice(orderId, cartItems, cartTotal, discountApplied, finalAmount,paymentType);
-
-        cartItemRepo.clearCart(cart.getId());
     }
 
     private PaymentType takePaymentFromCustomer(double amount) {
@@ -124,59 +138,6 @@ public class CustomerService {
         }
         iPaymentService.doPayment(amount);
         return paymentType;
-    }
-
-    private void printInvoice(int orderId, List<CartItem> cartItems,
-                              double cartTotal, double discount,
-                              double finalAmount, PaymentType paymentType) {
-
-        Order order = orderRepo.getOrderById(orderId);
-
-        System.out.println("\n==============================================================");
-        System.out.println("                        FOOD ORDER INVOICE");
-        System.out.println("==============================================================");
-
-        System.out.println("Order ID         : " + orderId);
-        System.out.println("Order Status     : " + (order != null ? order.getStatus() : OrderStatus.CREATED));
-        System.out.println("Payment Method   : " + paymentType);
-
-        if (order != null && order.getDeliveryPartner() != null) {
-            System.out.println("Delivery Partner : " + order.getDeliveryPartner().getName());
-        } else {
-            System.out.println("Delivery Partner : Not Assigned");
-        }
-
-        System.out.println("Delivery Address : " +
-                (customer.getCustomerAddress() != null
-                        ? customer.getCustomerAddress()
-                        : "Not Provided"));
-
-        System.out.println("--------------------------------------------------------------");
-        System.out.printf("%-5s %-22s %-8s %-10s %-12s%n",
-                "No", "Item", "Qty", "Price", "Subtotal");
-        System.out.println("--------------------------------------------------------------");
-
-        int index = 1;
-
-        for (CartItem item : cartItems) {
-
-            System.out.printf("%-5d %-22s %-8d %-10.2f %-12.2f%n",
-                    index++,
-                    item.getFoodItem().getName(),
-                    item.getQuantity(),
-                    item.getFoodItem().getPrice(),
-                    item.getTotal());
-        }
-
-        System.out.println("--------------------------------------------------------------");
-
-        System.out.printf("%-40s %10.2f%n", "Cart Total:", cartTotal);
-        System.out.printf("%-40s %10.2f%n", "Discount Applied:", discount);
-        System.out.printf("%-40s %10.2f%n", "Final Payable Amount:", finalAmount);
-
-        System.out.println("==============================================================");
-        System.out.println("               Thank You For Ordering With Us!");
-        System.out.println("==============================================================\n");
     }
 
     public void addItemToCart(FoodItem foodItem, int quantity) {
